@@ -1,0 +1,17 @@
+venv/
+**/venv/
+__pycache__/
+*.pyc
+
+# Directori structure
+datasets/*
+!datasets/.gitkeep 
+model_repos/*
+!model_repos/.gitkeep
+
+
+# models
+*.pt
+*.pth
+*.onnx
+*.pkl
