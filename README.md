@@ -14,9 +14,7 @@ qai-hub list-devices
 ```
 Device to choose: "QCS8550 (Proxy)"
 
-**4. Download Cuda Toolkit:** https://developer.nvidia.com/cuda-toolkit
-
-Then:
+**4. Torch:**
 ```
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
 ```
