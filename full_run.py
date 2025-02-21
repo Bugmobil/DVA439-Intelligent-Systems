@@ -7,7 +7,7 @@ import qai_hub as hub
 
 # Use the model definition from downloaded repo
 # Should look like this: model_repos.<repo_name>.<model_name>.<model_file>
-from model_repos.ChaIR.Dehazing.OTS.models.ChaIR import build_net  
+from model_repos.ChaIR.Dehazing.OTS.models.ChaIR import build_net
 
 
 
@@ -19,7 +19,7 @@ model.load_state_dict(state_dict, strict=False)
 model.eval() 
 
 # Step 2: Trace the model
-input_shape = (1, 3, 224, 224)
+input_shape = (1, 3, 256, 256)
 example_input = torch.rand(input_shape)
 traced_model = torch.jit.trace(model, example_input)
 
@@ -42,7 +42,7 @@ profile_job = hub.submit_profile_job(
 assert isinstance(profile_job, hub.ProfileJob)
 
 # Step 5: Run inference on cloud-hosted device
-sample_image = Image.open(r"datasets\reside-outdoor\test\hazy\0007_0.9_0.16.jpg").resize((224, 224))
+sample_image = Image.open(r"datasets\reside-outdoor\test\hazy\0007_0.9_0.16.jpg").resize((256, 256))
 input_array = np.transpose(np.array(sample_image, dtype=np.float32) / 255.0, (2, 0, 1))[np.newaxis, ...]
 
 # Run inference using the on-device model on the input image
@@ -53,6 +53,7 @@ inference_job = hub.submit_inference_job(
 )
 assert isinstance(inference_job, hub.InferenceJob)
 
+"""
 on_device_output = inference_job.download_output_data()
 assert isinstance(on_device_output, dict)
 
@@ -68,3 +69,4 @@ Image.fromarray(dehazed_image).save("dehazed_image.jpg")
 target_model = compile_job.get_target_model()
 assert isinstance(target_model, hub.Model)
 target_model.download("ChaIR_ots_4073_9968.onnx")
+"""
