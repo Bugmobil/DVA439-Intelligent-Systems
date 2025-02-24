@@ -53,10 +53,12 @@ inference_job = hub.submit_inference_job(
 )
 assert isinstance(inference_job, hub.InferenceJob)
 
+
+
 """
 on_device_output = inference_job.download_output_data()
 assert isinstance(on_device_output, dict)
-
+ 
 # Step 6: Post-process the on-device output for an image dehazer model
 output_name = list(on_device_output.keys())[0]
 dehazed_output = on_device_output[output_name][0]
