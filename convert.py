@@ -2,7 +2,7 @@ import torch
 import os
 from model_repos.ChaIR.Dehazing.OTS.models.ChaIR import build_net  # Use the model definition from your downloaded repo
 
-pkl_file_path =  r"\ChaIR\model_ots_4073_9968.pkl"
+pkl_file_path =  r"\ChaIR\model_ots_4073_9968.pkl" # Path to your .pkl file
 pkl_base_path = r"pretrained_models\pkl"
 final_pkl_path = os.path.join(pkl_base_path, pkl_file_path)
 model_name = pkl_file_path.split("\\")[-2]

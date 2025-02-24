@@ -4,24 +4,28 @@ import torch
 from PIL import Image
 import torchvision.transforms.functional as F
 import qai_hub as hub
+import os
 
 # Use the model definition from downloaded repo
 # Should look like this: model_repos.<repo_name>.<model_name>.<model_file>
 from model_repos.ChaIR.Dehazing.OTS.models.ChaIR import build_net
 
-
+pkl_file_path =  r"\ChaIR\model_ots_4073_9968.pkl" # Path to your .pkl file
+pkl_base_path = r"pretrained_models\pkl"
+final_pkl_path = os.path.join(pkl_base_path, pkl_file_path)
 
 # 1. Instantiate model and load the state dictionary:
 model = build_net()
 # Load the state dictionary from the pretrained_models folder
-state_dict = torch.load(r"pretrained_models\base\ChaIR\model_ots_4073_9968.pkl", map_location=torch.device('cpu'))
+state_dict = torch.load(final_pkl_path , map_location=torch.device('cpu'))
 model.load_state_dict(state_dict, strict=False)
 model.eval() 
 
 # Step 2: Trace the model
-input_shape = (1, 3, 256, 256)
+input_shape = (1, 3, 256, 256) # Input shape of the model (batch_size, channels, height, width)
 example_input = torch.rand(input_shape)
 traced_model = torch.jit.trace(model, example_input)
+
 
 # Step 3: Compile the model
 compile_job = hub.submit_compile_job(
