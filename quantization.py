@@ -19,7 +19,9 @@ def quantization_job(onnx_model_path, input_shape):
     sample_inputs = []
 
     images_dir = "datasets/reside-outdoor/test/hazy/"
-    for image_path in os.listdir(images_dir):
+    for i, image_path in enumerate(os.listdir(images_dir)):
+        if i > 100: # Limit the number of calibration samples
+            break
         sample_image = Image.open(os.path.join(images_dir, image_path))
         sample_image = sample_image.convert("RGB").resize(input_shape[2:])
         # Simple normalization to [0,1] range

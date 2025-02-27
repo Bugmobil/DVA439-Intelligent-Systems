@@ -14,4 +14,15 @@ qai-hub configure --api_token <API_TOKEN>
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
 ```
 
+**4. Install the required packages for the model you are using:**
+Check their github page for the required packages.
 
+**5. Run the main file:**
+```
+python main.py
+```
+
+**6. To add a new model:**
+```
+Edit the main.py file and add the model to "choose_model" function.
+```
