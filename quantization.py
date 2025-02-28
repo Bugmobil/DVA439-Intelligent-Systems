@@ -9,10 +9,8 @@ import qai_hub as hub
 def quantization_job(onnx_model_path, input_shape):
     # 1. Load the model
     # Quantize the model
-    if not onnx_model_path:
-        unquantized_onnx_model = input("Enter local path to the ONNX model: ")
-    else:
-        unquantized_onnx_model = onnx_model_path.get_target_model()
+    if not onnx_model_path.endswith(".onnx"):
+        unquantized_onnx_model = hub.get_job(onnx_model_path).get_target_model()
         assert isinstance(unquantized_onnx_model, hub.Model)
 
     # 2. Load and pre-process downloaded calibration data
