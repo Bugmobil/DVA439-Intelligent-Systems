@@ -39,8 +39,6 @@ compile_onnx_job = hub.submit_compile_job(
 )
 assert isinstance(compile_onnx_job, hub.CompileJob)
 
-quantized_onnx_model = quantization_job(compile_onnx_job, input_shape)
-compile_quantized_model(quantized_onnx_model)
 
 # Step 4: Profile on cloud-hosted device
 userInput = input("Which model to profile? 1. ONNX model 2. Quantized model")
@@ -48,6 +46,8 @@ userInput = input("Which model to profile? 1. ONNX model 2. Quantized model")
 if userInput == '1':
     target_model = compile_onnx_job.get_target_model()
 elif userInput == '2':
+    quantized_onnx_model = quantization_job(compile_onnx_job, input_shape)
+    compile_quantized_model(quantized_onnx_model)
     target_model = quantized_onnx_model
 
 #target_model = compile_onnx_job.get_target_model()
@@ -72,8 +72,8 @@ assert isinstance(inference_job, hub.InferenceJob)
 
 
 
-"""
 on_device_output = inference_job.download_output_data()
+"""
 assert isinstance(on_device_output, dict)
  
 # Step 6: Post-process the on-device output for an image dehazer model

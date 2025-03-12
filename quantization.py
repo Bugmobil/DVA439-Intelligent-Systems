@@ -4,6 +4,7 @@ import torch
 import torchvision
 from PIL import Image
 import qai_hub as hub
+import onnx
 
 
 def quantization_job(onnx_model_path, input_shape):
@@ -12,13 +13,15 @@ def quantization_job(onnx_model_path, input_shape):
     if not onnx_model_path.endswith(".onnx"):
         unquantized_onnx_model = hub.get_job(onnx_model_path).get_target_model()
         assert isinstance(unquantized_onnx_model, hub.Model)
-
+    else:
+        unquantized_onnx_model = onnx_model_path
+        
     # 2. Load and pre-process downloaded calibration data
     sample_inputs = []
 
     images_dir = "datasets/reside-outdoor/test/hazy/"
     for i, image_path in enumerate(os.listdir(images_dir)):
-        if i > 100: # Limit the number of calibration samples
+        if i > 5: # Limit the number of calibration samples
             break
         sample_image = Image.open(os.path.join(images_dir, image_path))
         sample_image = sample_image.convert("RGB").resize(input_shape[2:])
@@ -34,6 +37,7 @@ def quantization_job(onnx_model_path, input_shape):
         calibration_data=calibration_data,
         weights_dtype=hub.QuantizeDtype.INT8,
         activations_dtype=hub.QuantizeDtype.INT8,
+        options="--preserve_input_names",
     )
 
     quantized_onnx_model = quantize_job.get_target_model()
@@ -48,6 +52,7 @@ def compile_quantized_model(quantized_onnx_model):
         options="--target_runtime tflite --quantize_io",
     )
     assert isinstance(compile_tflite_job, hub.CompileJob)
+    compile_tflite_job.wait(900) # Timeout after 15 min if the job is not completed
 
 
 def main():

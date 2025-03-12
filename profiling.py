@@ -27,3 +27,4 @@ def profile_model():
             device=hub.Device("QCS8550 (Proxy)"),
         )
         assert isinstance(profile_job, hub.ProfileJob)
+        profile_job.wait(900) # Timeout after 15 min if the job is not completed

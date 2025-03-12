@@ -5,6 +5,7 @@ from PIL import Image
 import torchvision.transforms.functional as F
 import qai_hub as hub
 import os
+import h5py  # For reading HDF5 files
 
 # Global variable to store the selected model
 global model
@@ -25,9 +26,9 @@ def trace_model(pkl_file_path):
 
     # Step 2: Trace the model
     input_shape = (1, 3, 256, 256) # Input shape of the model (batch_size, channels, height, width)
-    #example_input = torch.rand(input_shape)
-    traced_model = torch.jit.trace(model)
-    #traced_model = torch.jit.script(model)
+    example_input = torch.rand(input_shape)
+    #traced_model = torch.jit.trace(model, example_input)
+    traced_model = torch.jit.script(model)
     if input("Do you want to save the TorchScript model? (y/n): ") == 'y':
         model_name = pkl_file_path.split('\\')[-2]
         save_path = r"pretrained_models\pt"
@@ -46,7 +47,7 @@ def compile_model_qui(file_path):
     
     if file_path.endswith(".pt"):
         compile_type = "--target_runtime onnx"
-        input_specs = dict(image=(1, 3, 256, 256))
+        input_specs = dict(image=(1, 3, 256, 256)) 
     else:
         compile_type = "--target_runtime tflite --quantize_io"
         input_specs = None
@@ -58,7 +59,7 @@ def compile_model_qui(file_path):
         input_specs=input_specs
     )
     assert isinstance(compile_job, hub.CompileJob)
-    compile_job.wait_until_completed()
+    compile_job.wait(900) # Timeout after 15 min if the job is not completed
 
 def compile_model_torch(pt_file_path):
     """
@@ -96,6 +97,7 @@ def inference_job_qai(job_code):
     inputs=dict(image=[input_array]),
     )
     assert isinstance(inference_job, hub.InferenceJob)
+    inference_job.wait(900) # Timeout after 15 min if the job is not completed
 
 def download_a_model(job_code, model_type):
     """
@@ -110,6 +112,24 @@ def download_a_model(job_code, model_type):
     base_path = "pretrained_models/onnx"
     target_model.download(base_path + "/" + job_code + ".onnx")
 
+def download_output(job_code):
+    inference_job = hub.get_job(job_code)
+    assert isinstance(inference_job, hub.InferenceJob)
+    output_folder = "outputs/h5_files/"
+    filename = os.path.join(output_folder, job_code)
+    if not os.path.exists(filename):
+        if input("Save file to: " + filename + "? (y/n): ") == "y":
+            inference_job.download_output_data(filename)
+        
+    png_file_path = "outputs/png_files/" + job_code + ".png"
+    if input("Convert to .png? (y/n): ") == "y":
+        filename = filename + ".h5"
+        convert_h5_to_png(filename, png_file_path)
+
+def convert_h5_to_png(h5_file_path, png_file_path=None, dataset_name=None, rescale=True, output_dtype=np.uint8):
+    print("Under construction :)")
+
+
 def choose_model():
     """
     Interactive menu for selecting a dehazing model.
@@ -120,12 +140,12 @@ def choose_model():
     Returns:
         The initialized model object
     """
-    case_model = input("** Available models ** \n1. Chair\n2. FSNet\n3. SFNet\nChoose Model:")
+    case_model = input("** Available models ** \n1. Chair\n2. CasDyF-Net\n3. Add more\nChoose Model:")
     if case_model == '1':
         from model_repos.ChaIR.Dehazing.OTS.models.ChaIR import build_net
         return build_net()
     elif case_model == '2':
-        from model_repos.FSNet.Dehazing.OTS.models.FSNet import build_net
+        from model_repos.CasDyF_Net.model import build_net
         return build_net()
     elif case_model == '3':
         from model_repos.SFNet.Image_dehazing.models.SFNet import build_net
@@ -144,11 +164,22 @@ def choose_job():
     3. Quantize - Quantize ONNX model
     4. Profile - Profile model performance
     5. Download - Download compiled model
+    6. Download - Download Output
     6. Full Run - Complete pipeline execution
     """
     global model
     torch_script_model = None
-    case = input("** Available Jobs ** \n1. Trace a model\n2. Compile a model\n3. Quantize a ONNX model\n4. Profile a model\n5. Download a model\n6. Do a full run\nChoose Job: ")
+    case = input("""
+** Available Jobs **
+1. Trace a model
+2. Compile a model
+3. Quantize a ONNX model
+4. Profile a model
+5. Run Inference
+6. Download a Model
+7. Download Output
+8. Do a full run
+Choose Job: """)
     if case == '1':
         model = choose_model()
         pkl_file_path =  input("Enter the path to the .pkl file: ")
@@ -174,10 +205,15 @@ def choose_job():
         from profiling import profile_model
         profile_model()
     elif case == '5':
-        download_a_model(input("Enter the job code: "), input("Enter the model name: "))
+        inference_job_qai(input("Enter the job code: "))
     elif case == '6':
+        download_a_model(input("Enter the job code: "), input("Enter the model name: "))
+    elif case == '7':
+        download_output(input("Enter the job code: "))
+    elif case == '8':
         from full_run import full_run
         full_run()
+
     else:
         print("Invalid input")
 
@@ -203,6 +239,7 @@ def main():
 
     while True:
         choose_job()
+        print("\n\n")
     
     
 
