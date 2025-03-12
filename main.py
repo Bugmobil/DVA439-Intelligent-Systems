@@ -95,6 +95,7 @@ def inference_job_qai(job_code):
     model=target_model,
     device=hub.Device("QCS8550 (Proxy)"),
     inputs=dict(image=[input_array]),
+    options= "--compute_unit cpu" # Use the CPU/NPU for inference
     )
     assert isinstance(inference_job, hub.InferenceJob)
     inference_job.wait(900) # Timeout after 15 min if the job is not completed
