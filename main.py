@@ -151,7 +151,7 @@ def choose_model():
         return build_net()
     elif case_model == '3':
         from model_repos.IRNeXt.Dehazing.OTS.models.IRNeXt import build_net
-        return build_net("test")
+        return build_net()
     else:
         print("Invalid input")
         choose_model()
