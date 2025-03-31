@@ -1,3 +1,4 @@
+import importlib
 import numpy as np
 import requests
 import torch
@@ -5,7 +6,7 @@ from PIL import Image
 import torchvision.transforms.functional as F
 import qai_hub as hub
 import os
-import h5py  # For reading HDF5 files
+import cv2 
 
 # Global variable to store the selected model
 global model
@@ -116,19 +117,19 @@ def download_a_model(job_code, model_type):
 def download_output(job_code):
     inference_job = hub.get_job(job_code)
     assert isinstance(inference_job, hub.InferenceJob)
-    output_folder = "outputs/h5_files/"
-    filename = os.path.join(output_folder, job_code)
-    if not os.path.exists(filename):
-        if input("Save file to: " + filename + "? (y/n): ") == "y":
-            inference_job.download_output_data(filename)
-        
-    png_file_path = "outputs/png_files/" + job_code + ".png"
-    if input("Convert to .png? (y/n): ") == "y":
-        filename = filename + ".h5"
-        convert_h5_to_png(filename, png_file_path)
+    on_device_output = inference_job.download_output_data()
+    assert isinstance(on_device_output, dict)
 
-def convert_h5_to_png(h5_file_path, png_file_path=None, dataset_name=None, rescale=True, output_dtype=np.uint8):
-    print("Under construction :)")
+    output_name = list(on_device_output.keys())[2]
+    dehazed_output = on_device_output[output_name][0]
+    dehazed_image = np.transpose(dehazed_output[0], (1, 2, 0))
+    dehazed_image = np.maximum(dehazed_image, 0)
+    dehazed_image = np.nan_to_num(dehazed_image) 
+    eps = 1e-8
+    dehazed_image = np.clip((dehazed_image + eps / 255.0) ** (1/1.7), 0, 1) * 255
+    dehazed_image = dehazed_image.astype(np.uint8)
+    png_file_path = "outputs/png_files/dehazed_image" + job_code + ".png"
+    cv2.imwrite(png_file_path, dehazed_image)
 
 
 def choose_model():
@@ -141,15 +142,15 @@ def choose_model():
     Returns:
         The initialized model object
     """
-    case_model = input("** Available models ** \n1. Chair\n2. CasDyF-Net\n3. Add more\nChoose Model:")
+    case_model = input("** Available models ** \n1. Chair\n2. FocalNet\n3. IRNeXt\nChoose Model: ")
     if case_model == '1':
         from model_repos.ChaIR.Dehazing.OTS.models.ChaIR import build_net
         return build_net()
     elif case_model == '2':
-        from model_repos.CasDyF_Net.model import build_net
+        from model_repos.FocalNet.Dehazing.OTS.models.FocalNet import build_net
         return build_net()
     elif case_model == '3':
-        from model_repos.SFNet.Image_dehazing.models.SFNet import build_net
+        from model_repos.IRNeXt.Dehazing.OTS.models.IRNeXt import build_net
         return build_net("test")
     else:
         print("Invalid input")

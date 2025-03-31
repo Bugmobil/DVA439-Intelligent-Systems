@@ -66,8 +66,8 @@ This framework supports the following models and formats:
 
 ### Supported Models
 - **ChaIR**: Dehazing model
-- **CasDyF-Net**: Cascade Dynamic Filtering Network for dehazing
-- **SFNet**: Structure-Feature Network for image dehazing
+- **IRNeXt**: Rethinking Convolutional Network Design for Image Restoration
+- **FocalNet**: Focal Network for Image Restoration
 
 ### Supported File Formats
 - **PKL (.pkl)**: Original PyTorch model weights
@@ -110,7 +110,6 @@ python main.py
    - Results saved to pretrained_models/onnx directory
 
 7. **Download Output**: Get inference results from Qualcomm AI Hub
-   - Option to convert HDF5 results to PNG images
    - Results saved to outputs directory
 
 8. **Full Run**: Execute complete pipeline from model selection to inference
