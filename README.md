@@ -44,7 +44,7 @@ DVA439 Intelligent Systems/
     .\venv\Scripts\activate
     ```
    ```bash
-   pip install numpy requests torch torchvision pillow h5py qai_hub
+   pip install numpy requests torch torchvision pillow qai_hub
    ```
 
 2. **Qualcomm AI Hub Setup**:
